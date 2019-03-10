@@ -1,6 +1,5 @@
 /**
  * Example:
- * npm i -g ini
  * node index.js /path/config.ini /path/rtmp.conf
  */
 
