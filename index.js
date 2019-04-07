@@ -4,27 +4,28 @@
  */
 
 const fs = require('fs');
-const path = require('path')
+const path = require('path');
 const ini = require('ini');
+const shell = require('shelljs');
 
-const settingsPath = path.resolve(process.argv[2])
-const configPath = path.resolve(process.argv[3])
-const settings = ini.parse(fs.readFileSync(settingsPath, 'utf-8'))
-let rtmp = fs.readFileSync(configPath, { encoding: 'utf-8' })
+const settingsPath = path.resolve(process.argv[2]);
+const configPath = path.resolve(process.argv[3]);
+const settings = ini.parse(fs.readFileSync(settingsPath, 'utf-8'));
+let rtmp = fs.readFileSync(configPath, { encoding: 'utf-8' });
 
-const apps = []
-const pushes = []
+const apps = [];
+const pushes = [];
 
 Object.keys(settings).forEach((sectionName) => {
   Object.keys(settings[sectionName]).forEach((source) => {
-    let name
+    let name;
     if (source === 'youtube') {
       name = `YOUTUBE_${sectionName}`
     } else if (source === 'vk') {
       name = `VK_${sectionName}`
     }
     if (name) {
-      pushes.push(`push rtmp://localhost/${name};`)
+      pushes.push(`push rtmp://localhost/${name};`);
       apps.push(
         `application ${name} {
           live on;
@@ -35,20 +36,22 @@ Object.keys(settings).forEach((sectionName) => {
       )
     }
   })
-})
+});
 
-let pushString = '#PUSH#\n'
+let pushString = '#PUSH#\n';
 pushes.forEach((push) => {
   pushString += push + '\n'
-})
-pushString += '#PUSH#'
-rtmp = rtmp.replace(/#PUSH#([\s\S]*?)#PUSH#/gm, pushString)
+});
+pushString += '#PUSH#';
+rtmp = rtmp.replace(/#PUSH#([\s\S]*?)#PUSH#/gm, pushString);
 
-let appString = '#APP#\n'
+let appString = '#APP#\n';
 apps.forEach((app) => {
   appString += app + '\n'
-})
-appString += '#APP#'
-rtmp = rtmp.replace(/#APP#([\s\S]*?)#APP#/gm, appString)
+});
+appString += '#APP#';
+rtmp = rtmp.replace(/#APP#([\s\S]*?)#APP#/gm, appString);
 
-fs.writeFileSync(configPath, rtmp, { encoding: 'utf-8' })
+fs.writeFileSync(configPath, rtmp, { encoding: 'utf-8' });
+
+shell.exec('service nginx restart');
